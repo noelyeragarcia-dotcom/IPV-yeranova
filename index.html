@@ -2,38 +2,198 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url='IPV%20Tres%20Claveles.html'" />
-    <title>IPV Tres Claveles</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IPV YeraNova</title>
+    <meta name="description" content="Sistema IPV YeraNova para control de inventario y punto de venta." />
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f2f5f4;
-        color: #14201d;
+      :root {
+        --bg: #f4f8f6;
+        --panel: #ffffff;
+        --panel-soft: #edf7f3;
+        --primary: #0f6a58;
+        --primary-dark: #0a4e42;
+        --accent: #dff6ee;
+        --text: #16312d;
+        --muted: #55726d;
+        --line: #dfeae6;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
         margin: 0;
-        min-height: 100vh;
+        min-height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f3faf7 0%, #ebf3ef 100%);
+        color: var(--text);
+      }
+
+      body {
         display: grid;
         place-items: center;
+        padding: 32px 18px;
       }
-      .box {
-        text-align: center;
-        background: white;
-        border: 1px solid #d3dbd9;
-        border-radius: 10px;
-        padding: 24px 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+
+      .card {
+        width: min(760px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(19, 64, 53, 0.08);
+        overflow: hidden;
       }
-      a {
-        color: #0e6b58;
+
+      .hero {
+        padding: 40px 34px 26px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(2rem, 5vw, 3.3rem);
+        line-height: 1.05;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 1.08rem;
+        color: rgba(255, 255, 255, 0.85);
+        max-width: 56ch;
+      }
+
+      .content {
+        padding: 30px 34px 36px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 8px;
+      }
+
+      .feature {
+        background: var(--panel-soft);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+      }
+
+      .feature h2 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        color: var(--primary-dark);
+      }
+
+      .feature p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 0.97rem;
+      }
+
+      .actions {
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 700;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+      }
+
+      .button.primary {
+        background: var(--primary);
+        color: white;
+        padding: 14px 22px;
+      }
+
+      .button.secondary {
+        background: white;
+        border: 1px solid var(--line);
+        color: var(--text);
+        padding: 13px 20px;
+      }
+
+      .status {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      @media (max-width: 620px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero, .content {
+          padding-left: 22px;
+          padding-right: 22px;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="box">
-      <p>Redirigiendo al sistema IPV...</p>
-      <p><a href="IPV%20Tres%20Claveles.html">Abrir la aplicación</a></p>
-    </div>
+    <main class="card" aria-label="IPV YeraNova landing page">
+      <header class="hero">
+        <span class="eyebrow">Inventario · Punto de venta</span>
+        <h1>IPV YeraNova</h1>
+        <p class="subtitle">Sistema para controlar inventario, registrar movimientos y consultar resultados de ventas de forma rápida y ordenada.</p>
+      </header>
+
+      <section class="content">
+        <div class="grid">
+          <article class="feature">
+            <h2>Control de stock</h2>
+            <p>Registra existencias iniciales, entradas, salidas y cálculos automáticos para cada producto.</p>
+          </article>
+
+          <article class="feature">
+            <h2>Resumen diario</h2>
+            <p>Visualiza el total por día, los importes y la información del dependiente en una sola vista.</p>
+          </article>
+
+          <article class="feature">
+            <h2>Productos</h2>
+            <p>Administra la lista de productos, precios y configuraciones desde una interfaz simple y clara.</p>
+          </article>
+
+          <article class="feature">
+            <h2>Respaldo</h2>
+            <p>Exporta e importa copias de seguridad para proteger la información del negocio.</p>
+          </article>
+        </div>
+
+        <div class="actions">
+          <a class="button primary" href="IPV%20Tres%20Claveles.html">Abrir el sistema</a>
+          <a class="button secondary" href="https://github.com/noelyeragarcia-dotcom/IPV-yeranova" target="_blank" rel="noreferrer">Ver repositorio</a>
+        </div>
+
+        <p class="status">Listo para GitHub Pages</p>
+      </section>
+    </main>
   </body>
 </html>
