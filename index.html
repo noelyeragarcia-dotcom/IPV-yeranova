@@ -1,493 +1,385 @@
 <!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>YeraNova POV</title>
-    <meta name="description" content="YeraNova POV - sistema minimalista para inventario y punto de venta." />
-    <style>
-      :root {
-        --bg: #070d14;
-        --bg-soft: #0f1721;
-        --panel: rgba(14, 20, 27, 0.82);
-        --panel-strong: rgba(17, 24, 32, 0.96);
-        --line: rgba(184, 197, 214, 0.12);
-        --text: #edf3fa;
-        --muted: #a0adba;
-        --primary: #8c6dfd;
-        --primary-2: #4ca7ff;
-        --secondary: #dfe7ff;
-        --shadow: rgba(0, 0, 0, 0.30);
-      }
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>IPV Control de Inventario</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B4F41">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IPV Control de Inventario">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Concepto: libro de control de inventario. Cabecera verde oscuro como la hoja, celdas amarillas = se escriben, celdas grises = se calculan. */
+:root{
+  --bg:#F2F5F4; --surface:#FFFFFF; --fg:#14201D; --muted:#586966; --line:#D3DBD9;
+  --accent:#0E6B58; --accent-fg:#FFFFFF; --input:#FFF5CF; --calc:#EAF0EE;
+  --neg-bg:#FAD7D2; --neg-fg:#9A1B0F; --ok:#0E6B58;
+  --font:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1514; --surface:#162120; --fg:#E5EEEC; --muted:#93A6A2; --line:#2A3836;
+  --accent:#2F9C82; --accent-fg:#04140F; --input:#33300F; --calc:#1D2B29;
+  --neg-bg:#4B1F1A; --neg-fg:#FFB4AB; --ok:#5FD0B0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1514; --surface:#162120; --fg:#E5EEEC; --muted:#93A6A2; --line:#2A3836;
+  --accent:#2F9C82; --accent-fg:#04140F; --input:#33300F; --calc:#1D2B29;
+  --neg-bg:#4B1F1A; --neg-fg:#FFB4AB; --ok:#5FD0B0; color-scheme:dark}
 
-      * { box-sizing: border-box; }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px 96px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.field input.biz{font-size:1.2rem;font-weight:600;padding:10px 12px;width:100%}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+header{display:flex;flex-direction:column;gap:6px}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{font:inherit;font-weight:500;background:none;border:0;padding:10px 14px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;border-radius:6px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.warn{border-color:var(--neg-fg);color:var(--neg-fg)}
+.btn.sm{padding:5px 9px;font-size:.85rem}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.field input,.txt{font:inherit;background:var(--input);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;min-width:0}
+.datebig{font-weight:500;color:var(--fg);margin:0;text-transform:capitalize}
+.banner{background:var(--neg-bg);color:var(--neg-fg);padding:10px 12px;border-radius:6px;font-size:.9rem}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px}
+thead th{background:var(--accent);color:var(--accent-fg);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;padding:9px 8px;text-align:right;position:sticky;top:0}
+thead th:first-child,tbody th{text-align:left;position:sticky;left:0;z-index:1}
+tbody th{background:var(--surface);font-weight:500;padding:6px 10px;min-width:150px;max-width:210px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+td{border-bottom:1px solid var(--line);padding:0;text-align:right}
+td.calc{background:var(--calc);font-family:var(--mono);font-variant-numeric:tabular-nums;padding:6px 8px;font-size:.9rem}
+td input{width:100%;min-width:62px;border:0;background:var(--input);color:var(--fg);font-family:var(--mono);font-size:.9rem;text-align:right;padding:8px 8px;font-variant-numeric:tabular-nums;border-radius:0}
+td input:focus-visible{outline-offset:-2px}
+td.neg{background:var(--neg-bg);color:var(--neg-fg);font-weight:600}
+td.imp{font-weight:600}
+.totalbar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:2px solid var(--accent);
+  padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:5}
+.totalbar>div{max-width:980px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.totalbar b{font-family:var(--mono);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.totalbar span{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.07em}
+.empty{border:1px dashed var(--line);border-radius:8px;padding:22px 18px;background:var(--surface);display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.empty h2{margin:0;font-size:1.05rem}
+.empty p{margin:0;color:var(--muted);max-width:60ch}
+.hint{color:var(--muted);font-size:.85rem;max-width:70ch;margin:0}
+.prodrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.prodrow .acts{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end}
+.prodrow input{width:100%;font:inherit;background:var(--input);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 9px;min-width:0}
+.prodrow input.n{font-family:var(--mono);text-align:right}
+.plist{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 12px}
+.colhead{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:8px;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 0 4px}
+.colhead span:nth-child(n+2){text-align:right}
+.sumtable{width:100%;min-width:0}
+.sumtable th,.sumtable td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.sumtable thead th{position:static}
+.sumtable td.r,.sumtable th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sumtable tr.go{cursor:pointer}
+.sumtable tr.go:hover td{background:var(--calc)}
+.sumtable tfoot td{font-weight:600;background:var(--calc)}
+textarea.txt{width:100%;min-height:120px;font-family:var(--mono);font-size:.8rem}
+.stack{display:flex;flex-direction:column;gap:10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:6px;font-size:.9rem;z-index:20;max-width:90vw}
+@media (min-width:640px){
+  .prodrow,.colhead{grid-template-columns:minmax(0,1fr) 110px 110px 190px}
+  .prodrow .acts{grid-column:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media print{.totalbar,nav,.noprint{display:none}}
+</style>
 
-      html, body {
-        margin: 0;
-        min-height: 100%;
-        background:
-          radial-gradient(circle at top left, rgba(140, 109, 253, 0.16), transparent 30%),
-          radial-gradient(circle at top right, rgba(76, 167, 255, 0.12), transparent 28%),
-          linear-gradient(180deg, var(--bg) 0%, #0a1017 100%);
-        color: var(--text);
-        font-family: Inter, "Segoe UI", Arial, sans-serif;
-      }
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="field"><label for="biz">Negocio</label>
+    <input id="biz" type="text" class="biz" placeholder="Escriba el nombre de su negocio" maxlength="80" autocomplete="off"></div>
+    <p class="sub">Modelo IPV · Control de inventario</p>
+  </header>
+  <div class="banner" id="banner" hidden>Este navegador no permite guardar datos. Use la pestaña Respaldo para copiar sus datos antes de cerrar.</div>
+  <nav role="tablist" aria-label="Secciones">
+    <button role="tab" data-tab="dia" aria-selected="true">Día</button>
+    <button role="tab" data-tab="prod" aria-selected="false">Productos</button>
+    <button role="tab" data-tab="res" aria-selected="false">Resumen</button>
+    <button role="tab" data-tab="resp" aria-selected="false">Respaldo</button>
+  </nav>
+  <main id="view"></main>
+</div>
+<div class="totalbar" id="totalbar"><div><span>Total del día</span><b id="total">0.00</b></div></div>
+<div class="toast" id="toast" hidden></div>
 
-      body {
-        display: grid;
-        place-items: center;
-        min-height: 100vh;
-        padding: 28px 18px;
-      }
+<script>
+(function(){
+var KEY="ipv-tres-claveles-v1";
+var S={products:[],days:{},lastDep:"",business:""};
+var tab="dia", curDate=todayStr();
 
-      a { text-decoration: none; color: inherit; }
+/* ---------- almacenamiento ---------- */
+function load(){
+  try{
+    var t="__t"; localStorage.setItem(t,"1"); localStorage.removeItem(t);
+    var r=localStorage.getItem(KEY);
+    if(r){var o=JSON.parse(r); if(o&&Array.isArray(o.products)&&o.days&&typeof o.days==="object"){S=o; S.lastDep=S.lastDep||""; S.business=typeof S.business==="string"?S.business:"";}}
+  }catch(e){document.getElementById("banner").hidden=false;}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){document.getElementById("banner").hidden=false;}
+}
 
-      .shell {
-        width: min(1100px, 100%);
-        background: rgba(10, 15, 20, 0.78);
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        box-shadow: 0 25px 80px var(--shadow);
-        overflow: hidden;
-        backdrop-filter: blur(8px);
-      }
+/* ---------- utilidades ---------- */
+function pad(n){return n<10?"0"+n:""+n}
+function todayStr(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function addDays(s,n){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]+n);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function dmy(s){var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
+function longDate(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function parseNum(s){s=String(s==null?"":s).trim().replace(",",".");if(s==="")return "";var n=Number(s);return isNaN(n)?"":n}
+function r6(x){return Math.round(x*1e6)/1e6}
+function fmtQ(n){return n.toLocaleString("en-US",{maximumFractionDigits:3})}
+function fmtM(n){return n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function uid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function sortedDates(){return Object.keys(S.days).sort()}
+function shown(){return S.products.filter(function(p){return p.name&&p.name.trim()})}
+var toastT;
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true},2200)}
+function copyText(text,ta){
+  var done=function(){toast("Copiado")};
+  var fb=function(){ta.value=text;ta.hidden=false;ta.focus();ta.select();toast("Seleccione y copie el texto")};
+  try{navigator.clipboard.writeText(text).then(done,fb)}catch(e){fb()}
+}
+function twoStep(btn,label,action){
+  var armed=false,t;var orig=btn.textContent;
+  btn.addEventListener("click",function(){
+    if(!armed){armed=true;btn.textContent=label;t=setTimeout(function(){armed=false;btn.textContent=orig},3500)}
+    else{clearTimeout(t);armed=false;btn.textContent=orig;action()}
+  });
+}
 
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 22px 28px;
-        border-bottom: 1px solid var(--line);
-      }
+/* ---------- lógica IPV ---------- */
+/* Inicio = Final del día anterior (último día anterior con Final escrito); si no hay, la existencia inicial del producto. */
+function inicio(p,date){
+  var ds=sortedDates();
+  for(var i=ds.length-1;i>=0;i--){
+    if(ds[i]<date){var f=S.days[ds[i]].fin;if(f&&f[p.id]!==undefined)return f[p.id]}
+  }
+  return +p.start||0;
+}
+/* Precio: el último precio escrito en un día igual o anterior; si no, el precio del producto. */
+function precio(p,date){
+  var ds=sortedDates();
+  for(var i=ds.length-1;i>=0;i--){
+    if(ds[i]<=date){var q=S.days[ds[i]].pr;if(q&&q[p.id]!==undefined)return q[p.id]}
+  }
+  return +p.price||0;
+}
+function calc(p,date){
+  var d=S.days[date]||{};
+  var ini=inicio(p,date);
+  var ent=(d.ent&&d.ent[p.id]!==undefined)?d.ent[p.id]:0;
+  var venta=r6(ini+ent);                       /* Venta = Inicio + Entrada */
+  var hasFin=!!(d.fin&&d.fin[p.id]!==undefined);
+  var fin=hasFin?d.fin[p.id]:null;
+  var vendido=hasFin?r6(venta-fin):null;       /* Vendido = Venta - Final */
+  var pr=precio(p,date);
+  var imp=hasFin?r6(vendido*pr):null;          /* Importe = Vendido x Precio */
+  return {ini:ini,ent:ent,venta:venta,fin:fin,hasFin:hasFin,vendido:vendido,pr:pr,imp:imp};
+}
+function dayTotal(date){
+  var t=0;shown().forEach(function(p){var c=calc(p,date);if(c.imp!==null)t+=c.imp});return r6(t);  /* Total = suma de Importes */
+}
+function getDay(date){
+  if(!S.days[date])S.days[date]={dep:S.lastDep||"",ent:{},fin:{},pr:{}};
+  var d=S.days[date];d.ent=d.ent||{};d.fin=d.fin||{};d.pr=d.pr||{};return d;
+}
 
-      .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        font-weight: 700;
-        letter-spacing: -0.04em;
-      }
+/* ---------- pestaña Día ---------- */
+function renderDia(){
+  var v=document.getElementById("view");
+  var d=S.days[curDate]||{};
+  var html='<div class="stack">'+
+   '<div class="row">'+
+    '<button class="btn" id="prev" aria-label="Día anterior">‹</button>'+
+    '<div class="field"><label for="date">Fecha</label><input type="date" id="date" value="'+curDate+'"></div>'+
+    '<button class="btn" id="next" aria-label="Día siguiente">›</button>'+
+    '<div class="field" style="flex:1;min-width:150px"><label for="dep">Dependiente</label><input type="text" id="dep" value="'+esc(d.dep!==undefined?d.dep:(S.lastDep||""))+'" placeholder="Nombre"></div>'+
+   '</div>'+
+   '<p class="datebig">'+longDate(curDate)+' · '+dmy(curDate)+'</p>';
+  var ps=shown();
+  if(!ps.length){
+    html+='<div class="empty"><h2>Todavía no hay productos</h2><p>Añada su lista de productos una sola vez y aparecerá aquí cada día, con Inicio, Venta, Vendido e Importe calculados.</p><button class="btn primary" id="gop">Añadir productos</button></div></div>';
+    v.innerHTML=html;
+    document.getElementById("gop").onclick=function(){setTab("prod")};
+    bindDate();document.getElementById("totalbar").hidden=true;return;
+  }
+  document.getElementById("totalbar").hidden=false;
+  html+='<div class="tablebox"><table><thead><tr><th>Producto</th><th>Inicio</th><th>Entrada</th><th>Venta</th><th>Final</th><th>Vendido</th><th>Precio</th><th>Importe</th></tr></thead><tbody>';
+  ps.forEach(function(p){
+    var c=calc(p,curDate);
+    html+='<tr data-id="'+p.id+'"><th scope="row">'+esc(p.name)+'</th>'+
+     '<td class="calc" data-c="ini"></td>'+
+     '<td><input inputmode="decimal" data-k="ent" aria-label="Entrada de '+esc(p.name)+'" value="'+(d.ent&&d.ent[p.id]!==undefined?d.ent[p.id]:"")+'"></td>'+
+     '<td class="calc" data-c="venta"></td>'+
+     '<td><input inputmode="decimal" data-k="fin" aria-label="Final de '+esc(p.name)+'" value="'+(c.hasFin?c.fin:"")+'"></td>'+
+     '<td class="calc" data-c="vend"></td>'+
+     '<td><input inputmode="decimal" data-k="pr" aria-label="Precio de '+esc(p.name)+'" value="'+(c.pr?c.pr:"")+'"></td>'+
+     '<td class="calc imp" data-c="imp"></td></tr>';
+  });
+  html+='</tbody></table></div>'+
+   '<div class="row noprint"><button class="btn" id="cpday">Copiar el día para Excel</button></div>'+
+   '<textarea class="txt" id="cpta" hidden readonly aria-label="Texto del día"></textarea>'+
+   '<p class="hint">Escriba solo en las celdas amarillas: Entrada, Final y, si cambia, Precio. El Final de hoy pasa solo como Inicio del día siguiente.</p></div>';
+  v.innerHTML=html;
+  bindDate();
+  document.getElementById("dep").addEventListener("input",function(e){var dd=getDay(curDate);dd.dep=e.target.value;S.lastDep=e.target.value;save()});
+  v.querySelector("tbody").addEventListener("input",function(e){
+    var inp=e.target;if(!inp.dataset.k)return;
+    var pid=inp.closest("tr").dataset.id;var k=inp.dataset.k;
+    var val=parseNum(inp.value);var dd=getDay(curDate);
+    if(val==="")delete dd[k][pid];else dd[k][pid]=val;
+    save();refreshDia();
+  });
+  document.getElementById("cpday").onclick=function(){copyText(dayTSV(),document.getElementById("cpta"))};
+  refreshDia();
+}
+function bindDate(){
+  document.getElementById("date").addEventListener("change",function(e){if(e.target.value){curDate=e.target.value;renderDia()}});
+  document.getElementById("prev").onclick=function(){curDate=addDays(curDate,-1);renderDia()};
+  document.getElementById("next").onclick=function(){curDate=addDays(curDate,1);renderDia()};
+}
+function refreshDia(){
+  var trs=document.querySelectorAll("#view tbody tr");var total=0;
+  trs.forEach(function(tr){
+    var p=S.products.filter(function(x){return x.id===tr.dataset.id})[0];if(!p)return;
+    var c=calc(p,curDate);
+    tr.querySelector('[data-c="ini"]').textContent=fmtQ(c.ini);
+    tr.querySelector('[data-c="venta"]').textContent=fmtQ(c.venta);
+    var vd=tr.querySelector('[data-c="vend"]');
+    vd.textContent=c.vendido===null?"":fmtQ(c.vendido);
+    vd.classList.toggle("neg",c.vendido!==null&&c.vendido<0);
+    vd.title=(c.vendido!==null&&c.vendido<0)?"El Final es mayor que lo disponible. Revise.":"";
+    tr.querySelector('[data-c="imp"]').textContent=c.imp===null?"":fmtM(c.imp);
+    if(c.imp!==null)total+=c.imp;
+  });
+  document.getElementById("total").textContent=fmtM(r6(total));
+}
+function dayTSV(){
+  var rows=[["Producto","Inicio","Entrada","Venta","Final","Vendido","Precio","Importe"]];
+  var tot=0;
+  shown().forEach(function(p){var c=calc(p,curDate);if(c.imp!==null)tot+=c.imp;
+    rows.push([p.name,c.ini,c.ent,c.venta,c.hasFin?c.fin:"",c.vendido===null?"":c.vendido,c.pr,c.imp===null?"":c.imp])});
+  rows.push(["","","","","","","Total",r6(tot)]);
+  var d=S.days[curDate]||{};
+  var biz=(S.business||"").trim();
+  return (biz?biz+"\t":"")+"IPV\tDependiente: "+(d.dep||"")+"\t"+dmy(curDate)+"\n"+rows.map(function(r){return r.join("\t")}).join("\n");
+}
 
-      .brand-mark {
-        position: relative;
-        width: 28px;
-        height: 28px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
-        box-shadow: 0 10px 28px rgba(123, 99, 255, 0.28);
-      }
+/* ---------- pestaña Productos ---------- */
+function renderProd(){
+  var v=document.getElementById("view");document.getElementById("totalbar").hidden=true;
+  var html='<div class="stack">'+
+   '<p class="hint">Esta lista se escribe una vez y se actualiza cuando haga falta. <b>Existencia inicial</b> es lo que hay el primer día; desde el segundo día el Inicio sale solo del Final anterior. El <b>Precio</b> de aquí es el que se usa por defecto; si lo cambia dentro de un día, rige desde ese día en adelante.</p>'+
+   '<div class="plist"><div class="colhead"><span>Producto</span><span>Exist. inicial</span><span>Precio</span></div>';
+  if(!S.products.length)html+='<p class="hint" style="padding:14px 0">La lista está vacía. Use el botón Añadir producto o pegue una lista más abajo.</p>';
+  S.products.forEach(function(p,i){
+    html+='<div class="prodrow" data-i="'+i+'">'+
+     '<input data-f="name" placeholder="Nombre del producto" aria-label="Nombre" value="'+esc(p.name)+'">'+
+     '<input class="n" inputmode="decimal" data-f="start" placeholder="0" aria-label="Existencia inicial" value="'+(p.start?p.start:"")+'">'+
+     '<input class="n" inputmode="decimal" data-f="price" placeholder="0.00" aria-label="Precio" value="'+(p.price?p.price:"")+'">'+
+     '<div class="acts"><button class="btn sm" data-a="up" aria-label="Subir">↑</button><button class="btn sm" data-a="down" aria-label="Bajar">↓</button><button class="btn sm warn" data-a="del">Borrar</button></div></div>';
+  });
+  html+='</div>'+
+   '<div class="row"><button class="btn primary" id="addp">Añadir producto</button></div>'+
+   '<div class="stack"><div class="field"><label for="bulk">Pegar lista (un producto por línea; opcional: nombre y precio separados por tabulador o punto y coma)</label>'+
+   '<textarea class="txt" id="bulk" placeholder="Arroz Paq.;120&#10;Aceite Comestible;450"></textarea></div>'+
+   '<div class="row"><button class="btn" id="addbulk">Añadir lista</button></div></div></div>';
+  v.innerHTML=html;
+  var plist=v.querySelector(".plist");
+  plist.addEventListener("input",function(e){
+    var row=e.target.closest(".prodrow");if(!row||!e.target.dataset.f)return;
+    var p=S.products[+row.dataset.i];var f=e.target.dataset.f;
+    if(f==="name")p.name=e.target.value;
+    else{var n=parseNum(e.target.value);p[f]=n===""?0:n}
+    save();
+  });
+  plist.querySelectorAll("[data-a]").forEach(function(b){
+    var i=+b.closest(".prodrow").dataset.i,a=b.dataset.a;
+    if(a==="del"){twoStep(b,"¿Seguro?",function(){S.products.splice(i,1);save();renderProd()})}
+    else b.addEventListener("click",function(){
+      var j=a==="up"?i-1:i+1;if(j<0||j>=S.products.length)return;
+      var t=S.products[i];S.products[i]=S.products[j];S.products[j]=t;save();renderProd();
+    });
+  });
+  document.getElementById("addp").onclick=function(){
+    S.products.push({id:uid(),name:"",start:0,price:0});save();renderProd();
+    var rows=document.querySelectorAll(".prodrow");rows[rows.length-1].querySelector("input").focus();
+  };
+  document.getElementById("addbulk").onclick=function(){
+    var lines=document.getElementById("bulk").value.split(/\r?\n/);var n=0;
+    lines.forEach(function(l){
+      l=l.trim();if(!l)return;
+      var parts=l.split(/\t|;/);var name=parts[0].trim();if(!name)return;
+      var pr=parts.length>1?parseNum(parts[parts.length-1]):"";
+      S.products.push({id:uid(),name:name,start:0,price:pr===""?0:pr});n++;
+    });
+    if(n){save();renderProd();toast(n+" productos añadidos")}else toast("No hay líneas para añadir");
+  };
+}
 
-      .brand-mark::before,
-      .brand-mark::after {
-        content: "";
-        position: absolute;
-        top: 5px;
-        width: 12px;
-        height: 18px;
-        background: rgba(255,255,255,0.9);
-        border-radius: 16px 16px 18px 18px;
-      }
+/* ---------- pestaña Resumen ---------- */
+function renderRes(){
+  var v=document.getElementById("view");document.getElementById("totalbar").hidden=true;
+  var ds=sortedDates().filter(function(d){return shown().some(function(p){return calc(p,d).hasFin})});
+  if(!ds.length){
+    v.innerHTML='<div class="empty"><h2>Sin días registrados</h2><p>Cuando escriba el Final de algún producto en la pestaña Día, el total de ese día aparecerá aquí.</p></div>';return;
+  }
+  var grand=0;
+  var html='<div class="stack"><div class="tablebox"><table class="sumtable"><thead><tr><th>Fecha</th><th>Dependiente</th><th class="r">Total</th></tr></thead><tbody>';
+  ds.forEach(function(d){var t=dayTotal(d);grand+=t;
+    html+='<tr class="go" data-d="'+d+'"><td>'+dmy(d)+'</td><td>'+esc(S.days[d].dep||"")+'</td><td class="r">'+fmtM(t)+'</td></tr>'});
+  html+='</tbody><tfoot><tr><td colspan="2">Total general</td><td class="r">'+fmtM(r6(grand))+'</td></tr></tfoot></table></div><p class="hint">Toque un día para abrirlo.</p></div>';
+  v.innerHTML=html;
+  v.querySelectorAll("tr.go").forEach(function(tr){tr.onclick=function(){curDate=tr.dataset.d;setTab("dia")}});
+}
 
-      .brand-mark::before {
-        left: 5px;
-        transform: rotate(-18deg);
-      }
+/* ---------- pestaña Respaldo ---------- */
+function renderResp(){
+  var v=document.getElementById("view");document.getElementById("totalbar").hidden=true;
+  v.innerHTML='<div class="stack">'+
+   '<p class="hint">Los datos se guardan en este navegador. Si limpia los datos del navegador o cambia de teléfono se pierden, así que copie un respaldo de vez en cuando y guárdelo en un mensaje o nota.</p>'+
+   '<div class="field"><label for="exp">Respaldo actual</label><textarea class="txt" id="exp" readonly></textarea></div>'+
+   '<div class="row"><button class="btn primary" id="cpexp">Copiar respaldo</button></div>'+
+   '<div class="field"><label for="imp">Restaurar desde un respaldo (pegue aquí el texto copiado)</label><textarea class="txt" id="imp"></textarea></div>'+
+   '<div class="row"><button class="btn warn" id="doimp">Restaurar</button></div>'+
+   '<p class="hint">Restaurar reemplaza todos los datos actuales.</p></div>';
+  var ta=document.getElementById("exp");ta.value=JSON.stringify(S);
+  document.getElementById("cpexp").onclick=function(){copyText(ta.value,ta);ta.select()};
+  twoStep(document.getElementById("doimp"),"¿Reemplazar todo?",function(){
+    try{
+      var o=JSON.parse(document.getElementById("imp").value);
+      if(!o||!Array.isArray(o.products)||typeof o.days!=="object")throw 0;
+      S=o;S.lastDep=S.lastDep||"";S.business=typeof S.business==="string"?S.business:"";save();syncBiz();toast("Datos restaurados");renderResp();
+    }catch(e){toast("El texto no es un respaldo válido")}
+  });
+}
 
-      .brand-mark::after {
-        right: 5px;
-        transform: rotate(18deg);
-      }
+/* ---------- navegación ---------- */
+function setTab(t){
+  tab=t;
+  document.querySelectorAll("nav button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.tab===t?"true":"false")});
+  ({dia:renderDia,prod:renderProd,res:renderRes,resp:renderResp})[t]();
+}
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){setTab(b.dataset.tab)}});
+function syncBiz(){document.getElementById("biz").value=S.business||""}
+document.getElementById("biz").addEventListener("input",function(e){S.business=e.target.value;save()});
+load();syncBiz();setTab("dia");
+})();
+</script>
 
-      .brand-name {
-        font-size: 1.1rem;
-      }
-
-      .brand-name small {
-        color: var(--muted);
-        font-weight: 500;
-      }
-
-      .nav {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
-
-      .nav a:hover { color: var(--text); }
-
-      .nav-cta {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0 18px;
-        border-radius: 12px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,0.02);
-        font-weight: 600;
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 26px;
-        padding: 42px 28px 22px;
-      }
-
-      .hero-copy {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 10px 0;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        width: fit-content;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(130, 109, 255, 0.08);
-        border: 1px solid rgba(144, 124, 255, 0.14);
-        color: #dfe8ff;
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        font-weight: 700;
-      }
-
-      h1 {
-        margin: 22px 0 12px;
-        font-size: clamp(3rem, 6vw, 6rem);
-        line-height: 0.92;
-        letter-spacing: -0.08em;
-        font-weight: 800;
-      }
-
-      .gradient {
-        background: linear-gradient(135deg, #ffffff 0%, #d7d9ff 30%, #8cc7ff 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-      }
-
-      .lead {
-        margin: 0;
-        max-width: 600px;
-        color: var(--muted);
-        font-size: 1.08rem;
-        line-height: 1.7;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        margin-top: 30px;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 50px;
-        padding: 0 22px;
-        border-radius: 14px;
-        border: 1px solid transparent;
-        font-weight: 700;
-        transition: transform 0.18s ease;
-      }
-
-      .btn:hover { transform: translateY(-1px); }
-
-      .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
-        color: white;
-        box-shadow: 0 18px 30px rgba(86, 97, 255, 0.28);
-      }
-
-      .btn-secondary {
-        background: rgba(255,255,255,0.02);
-        border-color: var(--line);
-        color: var(--text);
-      }
-
-      .stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 18px;
-        margin-top: 26px;
-      }
-
-      .stat {
-        min-width: 120px;
-      }
-
-      .stat-label {
-        display: block;
-        color: var(--muted);
-        font-size: 0.68rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-      }
-
-      .stat-value {
-        font-size: 1.2rem;
-        font-weight: 700;
-        letter-spacing: -0.04em;
-      }
-
-      .visual {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 420px;
-      }
-
-      .markboard {
-        width: min(440px, 100%);
-        aspect-ratio: 1 / 1.05;
-        border-radius: 26px;
-        background: linear-gradient(180deg, rgba(14, 20, 27, 0.9), rgba(10, 14, 19, 0.96));
-        border: 1px solid var(--line);
-        box-shadow: 0 30px 75px rgba(0,0,0,0.34);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .markboard::before {
-        content: "";
-        position: absolute;
-        inset: 18px;
-        border-radius: 24px;
-        border: 1px solid rgba(161, 178, 203, 0.12);
-        background: linear-gradient(180deg, rgba(12, 18, 24, 0.8), rgba(7, 12, 18, 0.9));
-      }
-
-      .logo-wrap {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        z-index: 2;
-      }
-
-      .logo {
-        position: relative;
-        width: 88%;
-        height: 260px;
-      }
-
-      .logo .shape-left,
-      .logo .shape-right {
-        position: absolute;
-        top: 14px;
-        width: 180px;
-        height: 180px;
-        border-radius: 110px 110px 120px 120px;
-        background: linear-gradient(135deg, #7f5ef8 0%, #5d6dfc 32%, #36a9ff 100%);
-        box-shadow: 0 16px 36px rgba(84, 98, 255, 0.25);
-      }
-
-      .logo .shape-left {
-        left: 46px;
-        transform: rotate(40deg);
-      }
-
-      .logo .shape-right {
-        right: 46px;
-        transform: rotate(-40deg);
-      }
-
-      .logo .stem {
-        position: absolute;
-        left: 50%;
-        top: 22px;
-        transform: translateX(-50%);
-        width: 150px;
-        height: 230px;
-        border-radius: 80px 80px 90px 90px;
-        background: linear-gradient(135deg, #7d57f6 0%, #4c77ff 28%, #2db6ff 100%);
-        box-shadow: 0 18px 36px rgba(81, 92, 242, 0.28);
-      }
-
-      .word {
-        position: absolute;
-        left: 18px;
-        right: 18px;
-        bottom: 22px;
-        z-index: 3;
-      }
-
-      .word .main {
-        font-size: clamp(2.3rem, 4vw, 4.2rem);
-        letter-spacing: -0.08em;
-        font-weight: 800;
-        line-height: 0.9;
-      }
-
-      .word .sub {
-        font-size: clamp(1.8rem, 3vw, 3.2rem);
-        letter-spacing: -0.08em;
-        font-weight: 800;
-        line-height: 0.86;
-        color: rgba(164, 142, 255, 0.95);
-      }
-
-      .features {
-        padding: 12px 28px 30px;
-      }
-
-      .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-      }
-
-      .feature-card {
-        background: rgba(16, 22, 29, 0.7);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 22px 20px;
-      }
-
-      .feature-card .num {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        background: rgba(123, 105, 255, 0.12);
-        border: 1px solid rgba(170, 186, 255, 0.14);
-        color: #dbe3ff;
-        font-weight: 700;
-      }
-
-      .feature-card h3 {
-        margin: 18px 0 10px;
-        font-size: 1.08rem;
-      }
-
-      .feature-card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .footer {
-        padding: 10px 28px 28px;
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      @media (max-width: 860px) {
-        .hero {
-          grid-template-columns: 1fr;
-        }
-        .feature-grid {
-          grid-template-columns: 1fr;
-        }
-        .topbar .nav {
-          display: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="shell">
-      <header class="topbar">
-        <div class="brand" aria-label="YeraNova POV">
-          <span class="brand-mark" aria-hidden="true"></span>
-          <span class="brand-name">yeranova <small>pov</small></span>
-        </div>
-
-        <nav class="nav" aria-label="Navegación principal">
-          <a href="#soluciones">Soluciones</a>
-          <a href="#beneficios">Beneficios</a>
-          <a href="#detalle">Detalle</a>
-        </nav>
-
-        <a class="nav-cta" href="IPV%20Tres%20Claveles.html">Abrir app</a>
-      </header>
-
-      <main>
-        <section class="hero">
-          <div class="hero-copy">
-            <span class="eyebrow">Inventario & punto de venta</span>
-            <h1><span class="gradient">yeranova</span></h1>
-            <p class="lead">
-              Una experiencia ligera, elegante y funcional para llevar el control del inventario, ventas y operaciones del negocio sin fricción.
-            </p>
-
-            <div class="actions">
-              <a class="btn btn-primary" href="IPV%20Tres%20Claveles.html">Ingresar</a>
-              <a class="btn btn-secondary" href="#soluciones">Ver más</a>
-            </div>
-
-            <div class="stats">
-              <div class="stat">
-                <span class="stat-label">Control</span>
-                <span class="stat-value">Diario</span>
-              </div>
-              <div class="stat">
-                <span class="stat-label">Gestión</span>
-                <span class="stat-value">Simple</span>
-              </div>
-              <div class="stat">
-                <span class="stat-label">Resumen</span>
-                <span class="stat-value">Claro</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="visual" aria-label="Logo YeraNova">
-            <div class="markboard">
-              <div class="logo-wrap">
-                <div class="logo" aria-hidden="true">
-                  <div class="shape-left"></div>
-                  <div class="shape-right"></div>
-                  <div class="stem"></div>
-                </div>
-              </div>
-              <div class="word">
-                <div class="main">yeranova</div>
-                <div class="sub">pov</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="soluciones" class="features">
-          <div class="feature-grid">
-            <article class="feature-card">
-              <div class="num">01</div>
-              <h3>Inventario</h3>
-              <p>Controlá existencias y movimientos con una lógica clara y baja fricción operativa.</p>
-            </article>
-
-            <article class="feature-card">
-              <div class="num">02</div>
-              <h3>Ventas</h3>
-              <p>Seguimiento de ventas y cálculos automáticos para tener visibilidad del desempeño del día.</p>
-            </article>
-
-            <article class="feature-card">
-              <div class="num">03</div>
-              <h3>Resumen</h3>
-              <p>Reportes simples, limpios y útiles para decisiones rápidas de negocio.</p>
-            </article>
-          </div>
-        </section>
-      </main>
-
-      <footer class="footer">
-        © 2026 YeraNova POV · Minimal SaaS style
-      </footer>
-    </div>
-  </body>
-</html>
+</body></html>

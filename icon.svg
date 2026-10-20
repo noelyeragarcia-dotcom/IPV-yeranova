@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#0B4F41"/>
+  <!-- hoja de libro de control -->
+  <rect x="104" y="92" width="304" height="328" rx="26" fill="#F6F3E7"/>
+  <rect x="104" y="92" width="304" height="74" rx="26" fill="#E2A72E"/>
+  <rect x="104" y="140" width="304" height="26" fill="#E2A72E"/>
+  <text x="256" y="148" text-anchor="middle" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="700" font-size="52" letter-spacing="6" fill="#0B4F41">IPV</text>
+  <!-- filas de inventario: producto, cantidad -->
+  <g fill="#0B4F41">
+    <rect x="142" y="206" width="26" height="26" rx="5"/>
+    <rect x="184" y="212" width="124" height="14" rx="7" opacity=".85"/>
+    <rect x="330" y="212" width="44" height="14" rx="7"/>
+    <rect x="142" y="262" width="26" height="26" rx="5"/>
+    <rect x="184" y="268" width="96" height="14" rx="7" opacity=".85"/>
+    <rect x="330" y="268" width="44" height="14" rx="7"/>
+    <rect x="142" y="318" width="26" height="26" rx="5"/>
+    <rect x="184" y="324" width="140" height="14" rx="7" opacity=".85"/>
+    <rect x="330" y="324" width="44" height="14" rx="7"/>
+  </g>
+  <!-- total -->
+  <rect x="142" y="366" width="232" height="4" rx="2" fill="#0B4F41" opacity=".5"/>
+  <rect x="268" y="384" width="106" height="16" rx="8" fill="#C0392B"/>
+</svg>
